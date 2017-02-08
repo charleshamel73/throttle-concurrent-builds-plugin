@@ -401,7 +401,10 @@ public class ThrottleQueueTaskDispatcher extends QueueTaskDispatcher {
     private int buildsOnExecutor(Task task, Executor exec) {
         int runCount = 0;
         final Queue.Executable currentExecutable = exec.getCurrentExecutable();
-        if (currentExecutable != null && task.equals(currentExecutable.getParent())) {
+        final SubTask parentTask = currentExecutable != null ? currentExecutable.getParent() : null;
+        if (currentExecutable != null && parentTask != null &&
+                parentTask.getOwnerTask() != null &&
+                parentTask.getOwnerTask().getName().equals(task.getName())) {
             runCount++;
         }
 
