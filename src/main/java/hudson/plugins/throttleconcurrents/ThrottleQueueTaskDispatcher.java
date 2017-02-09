@@ -204,6 +204,20 @@ public class ThrottleQueueTaskDispatcher extends QueueTaskDispatcher {
                     return CauseOfBlockage.fromMessage(Messages._ThrottleQueueTaskDispatcher_MaxCapacityTotal(totalRunCount));
                 }
             }
+            if (tjp.getMaxConcurrentPerNode().intValue() > 0) {
+                int maxConcurrentPerNode = tjp.getMaxConcurrentPerNode().intValue();
+                boolean noneAvailable = true;
+                for(Node node: jenkins.getNodes()){
+                    int runCount = buildsOfProjectOnNode(node, task);
+                    // This would mean that there are as many or more builds currently running than are allowed.
+                    if (runCount < maxConcurrentPerNode) {
+                        noneAvailable = true;
+                    }
+                }
+                if (noneAvailable){
+                    return CauseOfBlockage.fromMessage(Messages._ThrottleQueueTaskDispatcher_MaxCapacityOnNode(maxConcurrentPerNode));
+                }
+            }
         }
         // If the project is in one or more categories...
         else if (tjp.getThrottleOption().equals("category")) {
